@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">AirsoftCommander</string>
     
-    <string name="bomb">Bomb</string>
+    <string name="bomb">Tactical Bomb</string>
     <string name="gun">Gun</string>
 
 </resources>
