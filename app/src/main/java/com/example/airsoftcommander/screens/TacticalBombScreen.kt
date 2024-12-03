@@ -46,50 +46,83 @@ import kotlin.random.Random
 //todo random timer bomb game
 
 @Composable
-fun TacticalBombScreen(navController: NavController){
-    //Diffuse code need Length, digits for random code, my code
-    val diffuseCode by remember { mutableStateOf(0) }
+fun TacticalBombScreen(navController: NavController) {
 
-    var diffuseCodeText by remember { mutableStateOf("") }
-    var isCodeCorrect by remember { mutableStateOf(false) }
-    val validCode = "12333"
+    //var diffuseCode by remember { mutableStateOf("") } //Diffuse code, Random code
+
+    var diffuseCodeText by remember { mutableStateOf("") } //My code for disarming bomb
+    var isCodeCorrect by remember { mutableStateOf(false) } //Check if code is correct
+    var isCodeCorrectText by remember { mutableStateOf("") }
+    val validCode = "12333" //Holder for checking code
+    var diffuseCodeLength by remember { mutableStateOf("") }
+    var codeColor by remember { mutableStateOf(Color.Black) }
+
+    var showBombSettings by remember { mutableStateOf(true) }
 
 
-    Column(modifier = Modifier.fillMaxSize()){
-//        BombSettings(diffuseCode)
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        if (showBombSettings) {
+            BombSettings(
+                diffuseCodeLength,
+                onDiffuseCodeLengthChange = { newValue -> diffuseCodeLength = newValue},
+                onStartBombClick = { armingTime, bombTimer, guessPenalty ->
+                    if (armingTime.isNotEmpty() && bombTimer.isNotEmpty() && guessPenalty.isNotEmpty() && diffuseCodeLength.isNotEmpty()) {
+                        showBombSettings = false
+                    }else{
+                    Log.d("Validation", "All fields must be filled")
+                    }
+                }
+            )
+        }
+
+
+
         Detonation()
-//        Penalty()
-        DiffuseCode(diffuseCodeText,isCodeCorrect,validCode)
+        Penalty()
+        DiffuseCode(diffuseCodeText,isCodeCorrect,validCode,isCodeCorrectText)
 
 
-        Column (modifier = Modifier.fillMaxSize()
-            .padding(bottom = 40.dp),
+        Column (modifier = Modifier.fillMaxSize().padding(bottom = 40.dp),
             verticalArrangement = Arrangement.Bottom){
-            RandomKeyboard(diffuseCodeText = diffuseCodeText, onItemClicked = { item ->
-                if (item == "Go") {
-                    isCodeCorrect = diffuseCodeText.length == validCode.length && validCode.contains(diffuseCodeText)
-                    diffuseCodeText = ""
-                }else if (item == "R"){
-                    diffuseCodeText = ""
-                }else if(diffuseCodeText.length == validCode.length + 1){
-                    diffuseCodeText = ""
 
-                }else{
-                    diffuseCodeText += item
+            RandomKeyboard(diffuseCodeText = diffuseCodeText, onItemClicked = { item ->
+                when {
+                    item == "Go" -> {
+                        isCodeCorrect = diffuseCodeText.length == validCode.length && validCode.contains(
+                                diffuseCodeText) //Check to see if code is right
+                        if (isCodeCorrect) {
+                            isCodeCorrectText = "Correct!"
+                            codeColor = Color.Green
+                        } else {
+                            isCodeCorrectText = "Incorrect!"
+                            codeColor = Color.Red
+                        }
+                        diffuseCodeText = ""
+                    }
+                    item == "R" -> {
+                        diffuseCodeText = ""
+                    }
+                    diffuseCodeText.length == validCode.length + 1 -> {
+                        diffuseCodeText = ""
+
+                    }
+                    else -> {
+                        diffuseCodeText += item
+                    }
                 }
                 Log.d("Button", "Button clicked: $item")
-
             })
         }
     }
 }
 
 @Composable
-fun BombSettings(diffuseCode: Int){ // For Settings, Others are display
+fun BombSettings(diffuseCodeLength: String, onDiffuseCodeLengthChange: (String) -> Unit, onStartBombClick: (String, String, String) -> Unit){ // For Settings, Others are display
+
     var armingText by remember { mutableStateOf("") }
     var bombTimerText by remember { mutableStateOf("") }
     var guessPenaltyText by remember { mutableStateOf("") }
-    var diffuseCodeText by remember { mutableStateOf("")}
 
 
 
@@ -120,8 +153,8 @@ fun BombSettings(diffuseCode: Int){ // For Settings, Others are display
                     onValueChange = {if (it.length <= 3) armingText = it},
                     label = { Text(text = "Time seconds")},
                     modifier = Modifier.weight(1f),
-                    singleLine = true)
-
+                    singleLine = true
+                )
             }
             Row(modifier = Modifier.fillMaxWidth()){
                 Text(text = "Bomb Timer:",
@@ -134,8 +167,8 @@ fun BombSettings(diffuseCode: Int){ // For Settings, Others are display
                     onValueChange = {if (it.length <= 2) bombTimerText = it},
                     label = { Text(text = "Time minutes")},
                     modifier = Modifier.weight(1f),
-                    singleLine = true)
-
+                    singleLine = true
+                )
             }
             Row(modifier = Modifier.fillMaxWidth()){
                 Text(text = "Wrong guess penalty:",
@@ -145,12 +178,11 @@ fun BombSettings(diffuseCode: Int){ // For Settings, Others are display
                 )
 
                 OutlinedTextField(value = guessPenaltyText,
-                    onValueChange = { if (it.length <= 2) guessPenaltyText = it
-                    },
+                    onValueChange = { if (it.length <= 2) guessPenaltyText = it },
                     label = { Text(text = "Penalty seconds")},
                     modifier = Modifier.weight(1f),
-                    singleLine = true)
-
+                    singleLine = true
+                )
             }
 
             Row(modifier = Modifier.fillMaxWidth()){
@@ -159,22 +191,25 @@ fun BombSettings(diffuseCode: Int){ // For Settings, Others are display
                         .padding(top = 30.dp,end = 10.dp)
                         .weight(1f),
                 )
-
-                OutlinedTextField(value = diffuseCodeText,
-                    onValueChange = { if (it.length <= 2) diffuseCodeText = it
+                OutlinedTextField(
+                    value = diffuseCodeLength.toString(),
+                    onValueChange = { newValue ->
+                        if (newValue.length <= 2){
+                            onDiffuseCodeLengthChange(newValue)
+                        }
                     },
                     label = { Text(text = "Code Length")},
                     modifier = Modifier.weight(1f),
-                    singleLine = true)
-
+                    singleLine = true
+                )
             }
-
 
             Column(modifier = Modifier.fillMaxSize().padding(bottom = 10.dp),
                 verticalArrangement = Arrangement.Bottom) {
-                Button(onClick = {},
-                    modifier = Modifier
-                        .fillMaxWidth()){
+                Button(onClick = {
+                    onStartBombClick(armingText, bombTimerText, guessPenaltyText)
+                },
+                    modifier = Modifier.fillMaxWidth()){
                     Text(text = "Start Bomb")
                 }
             }
@@ -229,7 +264,7 @@ fun Penalty(){ //After settings set
 }
 
 @Composable
-fun DiffuseCode(diffuseCodeText: String, isCodeCorrect: Boolean, validCode: String){ //After settings set
+fun DiffuseCode(diffuseCodeText: String, isCodeCorrect: Boolean, validCode: String, isCodeCorrectText: String){ //After settings set
 
     OutlinedCard(
         colors = CardDefaults.cardColors(
@@ -252,7 +287,7 @@ fun DiffuseCode(diffuseCodeText: String, isCodeCorrect: Boolean, validCode: Stri
             Text(text = "My Code: $diffuseCodeText", fontSize = 20.sp,textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),)
             Text(
-                text = if (isCodeCorrect) "Correct" else "Incorrect",
+                text = isCodeCorrectText,
                 color = if (isCodeCorrect) Color.Green else Color.Red,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
