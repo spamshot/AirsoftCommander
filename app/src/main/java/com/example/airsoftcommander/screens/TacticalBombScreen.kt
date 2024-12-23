@@ -1,12 +1,7 @@
 package com.example.airsoftcommander.screens
 
-import androidx.compose.runtime.*
-import androidx.compose.material3.*
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.BorderStroke
-import com.example.airsoftcommander.R
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,16 +9,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,12 +24,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -48,42 +36,58 @@ import kotlin.random.Random
 @Composable
 fun TacticalBombScreen(navController: NavController) {
 
-    //var diffuseCode by remember { mutableStateOf("") } //Diffuse code, Random code
-
     var diffuseCodeText by remember { mutableStateOf("") } //My code for disarming bomb
     var isCodeCorrect by remember { mutableStateOf(false) } //Check if code is correct
-    var isCodeCorrectText by remember { mutableStateOf("") }
-    val validCode = "12333" //Holder for checking code
-    var diffuseCodeLength by remember { mutableStateOf("") }
+    var isCodeCorrectText by remember { mutableStateOf("") } //Holder for changing display text
+    var validCode  by remember { mutableStateOf("") } //Correct code for disarming bomb, use with diffuseCodeText and randomNumber
+    var diffuseCodeLength by remember { mutableStateOf("") } //Used for getting length of diffuse code
     var codeColor by remember { mutableStateOf(Color.Black) }
 
     var showBombSettings by remember { mutableStateOf(true) }
 
+    var armingText by remember { mutableStateOf("") } //Arming time in seconds
+    var bombTimerText by remember { mutableStateOf("") } //Bomb timer in minutes
+    var guessPenaltyText by remember { mutableStateOf("") } //Penalty in seconds
 
+
+    var randomNumber by remember { mutableStateOf(0) }//Random number for diffuse code, use with diffuseCodeLength and validCode
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (showBombSettings) {
             BombSettings(
-                diffuseCodeLength,
+                diffuseCodeLength = diffuseCodeLength,
+                bombTimerText = bombTimerText,
+                guessPenaltyText = guessPenaltyText,
+                armingText = armingText,
                 onDiffuseCodeLengthChange = { newValue -> diffuseCodeLength = newValue},
+                onBombTimerChange = { newValue -> bombTimerText = newValue},
+                onGuessPenaltyChange = { newValue -> guessPenaltyText = newValue},
+                onArmingTimeChange = { newValue -> armingText = newValue},
                 onStartBombClick = { armingTime, bombTimer, guessPenalty ->
                     if (armingTime.isNotEmpty() && bombTimer.isNotEmpty() && guessPenalty.isNotEmpty() && diffuseCodeLength.isNotEmpty()) {
                         showBombSettings = false
+                        for (i in 1..diffuseCodeLength.toInt()){
+                            randomNumber = Random.nextInt(0, 9)
+                            randomNumber.toString()
+                            validCode += randomNumber
+                            Log.d("Validation", "Random number checker $randomNumber")
+                        }
                     }else{
-                    Log.d("Validation", "All fields must be filled")
+                            Log.d("Validation", "All fields must be filled")
                     }
+
                 }
             )
         }
+        ArmingTimer(armingText)//Shows Arming timer from arming card
+        Detonation(bombTimerText)//Shows timer from detonation card
+        Penalty(guessPenaltyText)//Shows penalty card
+        DiffuseCode(diffuseCodeText,isCodeCorrect,validCode,isCodeCorrectText) //Shows diffuse code card
 
 
-
-        Detonation()
-        Penalty()
-        DiffuseCode(diffuseCodeText,isCodeCorrect,validCode,isCodeCorrectText)
-
-
-        Column (modifier = Modifier.fillMaxSize().padding(bottom = 40.dp),
+        Column (modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 40.dp),
             verticalArrangement = Arrangement.Bottom){
 
             RandomKeyboard(diffuseCodeText = diffuseCodeText, onItemClicked = { item ->
@@ -118,20 +122,24 @@ fun TacticalBombScreen(navController: NavController) {
 }
 
 @Composable
-fun BombSettings(diffuseCodeLength: String, onDiffuseCodeLengthChange: (String) -> Unit, onStartBombClick: (String, String, String) -> Unit){ // For Settings, Others are display
-
-    var armingText by remember { mutableStateOf("") }
-    var bombTimerText by remember { mutableStateOf("") }
-    var guessPenaltyText by remember { mutableStateOf("") }
-
-
+fun BombSettings(
+    diffuseCodeLength: String,
+    bombTimerText: String,
+    guessPenaltyText: String,
+    armingText: String,
+    onDiffuseCodeLengthChange: (String) -> Unit,
+    onBombTimerChange: (String) -> Unit,
+    onGuessPenaltyChange: (String) -> Unit,
+    onArmingTimeChange: (String) -> Unit,
+    onStartBombClick: (String, String, String) -> Unit) { // For Settings Page, Others are display
 
     OutlinedCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         border = BorderStroke(2.dp, Color.LightGray),
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .padding(top = 42.dp, start = 10.dp, end = 10.dp, bottom = 16.dp),
     ){
         Column(modifier = Modifier
@@ -145,12 +153,12 @@ fun BombSettings(diffuseCodeLength: String, onDiffuseCodeLengthChange: (String) 
             Row(modifier = Modifier.fillMaxWidth()){ //Arming time Row
                 Text(text = "Arming Time:",
                     modifier = Modifier
-                        .padding(top = 30.dp,end = 10.dp)
+                        .padding(top = 30.dp, end = 10.dp)
                         .weight(1f),
                 )
 
                 OutlinedTextField(value = armingText,
-                    onValueChange = {if (it.length <= 3) armingText = it},
+                    onValueChange = { if (it.length <= 3) onArmingTimeChange(it)},
                     label = { Text(text = "Time seconds")},
                     modifier = Modifier.weight(1f),
                     singleLine = true
@@ -159,12 +167,13 @@ fun BombSettings(diffuseCodeLength: String, onDiffuseCodeLengthChange: (String) 
             Row(modifier = Modifier.fillMaxWidth()){
                 Text(text = "Bomb Timer:",
                     modifier = Modifier
-                        .padding(top = 30.dp,end = 10.dp)
+                        .padding(top = 30.dp, end = 10.dp)
                         .weight(1f),
                 )
 
-                OutlinedTextField(value = bombTimerText,
-                    onValueChange = {if (it.length <= 2) bombTimerText = it},
+                OutlinedTextField(
+                    value = bombTimerText,
+                    onValueChange = { if (it.length <= 2) onBombTimerChange(it)},
                     label = { Text(text = "Time minutes")},
                     modifier = Modifier.weight(1f),
                     singleLine = true
@@ -173,12 +182,13 @@ fun BombSettings(diffuseCodeLength: String, onDiffuseCodeLengthChange: (String) 
             Row(modifier = Modifier.fillMaxWidth()){
                 Text(text = "Wrong guess penalty:",
                     modifier = Modifier
-                        .padding(top = 30.dp,end = 10.dp)
+                        .padding(top = 30.dp, end = 10.dp)
                         .weight(1f),
                 )
 
-                OutlinedTextField(value = guessPenaltyText,
-                    onValueChange = { if (it.length <= 2) guessPenaltyText = it },
+                OutlinedTextField(
+                    value = guessPenaltyText,
+                    onValueChange = { if (it.length <= 2) onGuessPenaltyChange(it)},
                     label = { Text(text = "Penalty seconds")},
                     modifier = Modifier.weight(1f),
                     singleLine = true
@@ -188,7 +198,7 @@ fun BombSettings(diffuseCodeLength: String, onDiffuseCodeLengthChange: (String) 
             Row(modifier = Modifier.fillMaxWidth()){
                 Text(text = "Diffuse code digits:",
                     modifier = Modifier
-                        .padding(top = 30.dp,end = 10.dp)
+                        .padding(top = 30.dp, end = 10.dp)
                         .weight(1f),
                 )
                 OutlinedTextField(
@@ -204,10 +214,12 @@ fun BombSettings(diffuseCodeLength: String, onDiffuseCodeLengthChange: (String) 
                 )
             }
 
-            Column(modifier = Modifier.fillMaxSize().padding(bottom = 10.dp),
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 10.dp),
                 verticalArrangement = Arrangement.Bottom) {
                 Button(onClick = {
-                    onStartBombClick(armingText, bombTimerText, guessPenaltyText)
+                    onStartBombClick(bombTimerText, guessPenaltyText, armingText) //Sets the values of the variables
                 },
                     modifier = Modifier.fillMaxWidth()){
                     Text(text = "Start Bomb")
@@ -219,13 +231,37 @@ fun BombSettings(diffuseCodeLength: String, onDiffuseCodeLengthChange: (String) 
 
 
 @Composable
-fun Detonation(){ //After settings set
+fun ArmingTimer(armingText:String){ //After setting, card displays arming time
+    OutlinedCard (
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        border = BorderStroke(3.dp, Color.Black),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 10.dp, end = 10.dp, bottom = 4.dp),
+    ){
+        Column(modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()) {
+            Text(text = "Bomb Arming",fontSize = 28.sp, textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodyLarge)
+            Text(text = armingText, fontSize = 20.sp,textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),)
+        }
+    }
+}
+
+@Composable
+fun Detonation(bombTimerText:String){ //After setting, card displays timer
     OutlinedCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         border = BorderStroke(3.dp, Color.Red),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(top = 42.dp, start = 10.dp, end = 10.dp, bottom = 4.dp),
     ){
         Column(modifier = Modifier
@@ -235,20 +271,21 @@ fun Detonation(){ //After settings set
                 modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold)
-            Text(text = "25:40", fontSize = 26.sp,textAlign = TextAlign.Center,
+            Text(text = bombTimerText, fontSize = 26.sp,textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),)
         }
     }
 }
 
 @Composable
-fun Penalty(){ //After settings set
+fun Penalty(guessPenaltyText:String){ //After setting, card displays Penalty Time
     OutlinedCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         border = BorderStroke(3.dp, Color.Yellow),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(start = 10.dp, end = 10.dp, bottom = 4.dp),
     ){
         Column(modifier = Modifier
@@ -257,21 +294,22 @@ fun Penalty(){ //After settings set
             Text(text = "Penalty",fontSize = 28.sp, textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
                 style = MaterialTheme.typography.bodyLarge)
-            Text(text = "00:59", fontSize = 20.sp,textAlign = TextAlign.Center,
+            Text(text = guessPenaltyText, fontSize = 20.sp,textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),)
         }
     }
 }
 
 @Composable
-fun DiffuseCode(diffuseCodeText: String, isCodeCorrect: Boolean, validCode: String, isCodeCorrectText: String){ //After settings set
+fun DiffuseCode(diffuseCodeText: String, isCodeCorrect: Boolean, validCode: String, isCodeCorrectText: String){ //After setting, card Diffuse Code Card Info
 
     OutlinedCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         border = BorderStroke(5.dp, Color.LightGray),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(start = 10.dp, end = 10.dp, bottom = 2.dp),
     ){
         Column(modifier = Modifier
@@ -306,12 +344,14 @@ fun RandomKeyboard(diffuseCodeText: String, onItemClicked: (String) -> Unit){ //
     var shuffledKeyboard by remember { mutableStateOf(shuffleKeyboard(keyboardArray)) }
     ElevatedCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(340.dp)
             .padding(start = 10.dp, end = 10.dp, bottom = 2.dp)
     ){
         Column(modifier = Modifier
+            .fillMaxSize()
             .padding(8.dp)
-            .fillMaxWidth(),
         ) {
             for (row in shuffledKeyboard){
                 Row(modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -321,8 +361,14 @@ fun RandomKeyboard(diffuseCodeText: String, onItemClicked: (String) -> Unit){ //
                             onItemClicked(item)
                             Log.d("Button", "Button clicked: $item")
                             shuffledKeyboard = shuffleKeyboard(keyboardArray)
-                        }){
-                            Text(text = item)
+                        }, Modifier
+                            .height(72.dp)
+                            .weight(1f)
+                            .padding(4.dp)
+
+                            ){
+                            Text(text = item,
+                                fontSize = 18.sp,)
                         }
                     }
                 }
