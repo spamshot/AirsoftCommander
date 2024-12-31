@@ -31,8 +31,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlin.random.Random
 
-//todo random timer bomb game
-
 @Composable
 fun TacticalBombScreen(navController: NavController) {
 
@@ -64,7 +62,8 @@ fun TacticalBombScreen(navController: NavController) {
                 onGuessPenaltyChange = { newValue -> guessPenaltyText = newValue},
                 onArmingTimeChange = { newValue -> armingText = newValue},
                 onStartBombClick = { armingTime, bombTimer, guessPenalty ->
-                    if (armingTime.isNotEmpty() && bombTimer.isNotEmpty() && guessPenalty.isNotEmpty() && diffuseCodeLength.isNotEmpty()) {
+                    if (armingTime.isNotEmpty() && bombTimer.isNotEmpty() && guessPenalty.isNotEmpty() && diffuseCodeLength.isNotEmpty()
+                        && diffuseCodeLength.toInt() != 0 && diffuseCodeLength.toInt() <= 15) {
                         showBombSettings = false
                         for (i in 1..diffuseCodeLength.toInt()){
                             randomNumber = Random.nextInt(0, 9)
@@ -75,7 +74,6 @@ fun TacticalBombScreen(navController: NavController) {
                     }else{
                             Log.d("Validation", "All fields must be filled")
                     }
-
                 }
             )
         }
@@ -92,7 +90,7 @@ fun TacticalBombScreen(navController: NavController) {
 
             RandomKeyboard(diffuseCodeText = diffuseCodeText, onItemClicked = { item ->
                 when {
-                    item == "Go" -> {
+                    item == "Go" -> { //Check when "Go" button is pressed
                         isCodeCorrect = diffuseCodeText.length == validCode.length && validCode.contains(
                                 diffuseCodeText) //Check to see if code is right
                         if (isCodeCorrect) {
@@ -104,7 +102,7 @@ fun TacticalBombScreen(navController: NavController) {
                         }
                         diffuseCodeText = ""
                     }
-                    item == "R" -> {
+                    item == "R" -> { //Check when "R" button is pressed, R = reset
                         diffuseCodeText = ""
                     }
                     diffuseCodeText.length == validCode.length + 1 -> {
@@ -383,3 +381,26 @@ fun shuffleKeyboard(keyboardArray: List<List<String>>): List<List<String>> {
         shuffledKeyboardArray.subList(index * 3, (index + 1) * 3)
     }
 }
+
+
+/*
+---- todo checklist <----------
+Set inputs to Timers
+1. Arming timer
+    Hide Arming card
+    Show Other cards
+2. Detonation timer
+    End Screen
+    Button to return to games page
+3. Guess penalty
+    Subtract penalty from timer
+
+Handel inputs in settings page
+ 1. Max input for diffuse code 15 ---\/
+    Need value(15), doing length right now, need both ---\/
+    Need input wronging if over
+
+Penalty card flash color when wrong input
+
+ */
+
