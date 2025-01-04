@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 
 class TimerViewModel : ViewModel() {
     private val _timeLeft = mutableStateOf(0)
-    val timeLeft: State<Int> = _timeLeft
+    var timeLeft: State<Int> = _timeLeft
 
     private val _isTimerRunning = mutableStateOf(false)
     val isTimerRunning: State<Boolean> = _isTimerRunning
@@ -19,6 +19,7 @@ class TimerViewModel : ViewModel() {
 
     fun startTimer(minutes: Int) {
         val totalTimeInMillis = minutes * 60 * 1000L
+        timer?.cancel()
         timer = object : CountDownTimer(totalTimeInMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 _timeLeft.value = (millisUntilFinished / 1000).toInt()
@@ -33,8 +34,9 @@ class TimerViewModel : ViewModel() {
         }.start()
     }
 
-    fun startArmingTimer(seconds: Int) {
+    fun startArmingTimer(seconds: Int) { //seconds is arming time that we pass
         val totalTimeInMillis = seconds * 1000L
+        timer?.cancel()
         timer = object : CountDownTimer(totalTimeInMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 _timeLeft.value = (millisUntilFinished / 1000).toInt()
@@ -49,9 +51,22 @@ class TimerViewModel : ViewModel() {
         }.start()
     }
 
-    fun startPenaltyTimer(seconds: Int) {
-        val totalTimeInMillis = seconds * 1000L
-        timer = object : CountDownTimer(totalTimeInMillis, 1000) {
+    fun startPenaltyTimer(toInt: Int) { //toInt is the penalty time.
+        if (!isTimerRunning.value) return
+
+        // Calculate new time by subtracting 30 seconds
+        val remainingMillis = (_timeLeft.value * 1000L) - (toInt * 1000L) //todo update to input of penalty time
+        if (remainingMillis <= 0) {
+            timer?.cancel()
+            _timeLeft.value = 0
+            _isTimerRunning.value = false
+            _isTimerFinished.value = true
+            return
+        }
+
+        // Cancel current timer and start new one with reduced time
+        timer?.cancel()
+        timer = object : CountDownTimer(remainingMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 _timeLeft.value = (millisUntilFinished / 1000).toInt()
                 _isTimerRunning.value = true

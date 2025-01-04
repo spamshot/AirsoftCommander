@@ -33,7 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.airsoftcommander.model.TimerViewModel
 import kotlin.random.Random
-
+import kotlin.text.contains
 
 
 class BombViewModel : ViewModel() {
@@ -90,7 +90,7 @@ fun TacticalBombScreen(
     var isCodeCorrectText by remember { mutableStateOf("") }
     var codeColor by remember { mutableStateOf(Color.Black) }
 
-    val timeLeft = timerViewModel.timeLeft.value
+    var timeLeft = timerViewModel.timeLeft.value
     val isTimerRunning = timerViewModel.isTimerRunning.value
     val isTimerFinished = timerViewModel.isTimerFinished.value
 
@@ -116,8 +116,8 @@ fun TacticalBombScreen(
                         && bombViewModel.diffuseCodeLength.toInt() != 0 && bombViewModel.diffuseCodeLength.toInt() <= 15
                     ) {
                         bombViewModel.startBomb()
-                        timerViewModel.resetTimer()
-                        timerViewModel.startArmingTimer(bombViewModel.armingText.toInt())
+                       // timerViewModel.resetTimer()
+                        timerViewModel.startArmingTimer(bombViewModel.armingText.toInt()) //Passing arming time to timer
                     } else {
                         Log.d("Validation", "All fields must be filled")
                     }
@@ -127,69 +127,78 @@ fun TacticalBombScreen(
             if (isArmingActive) {
                 ArmingTimer(timeLeft.toString())
                 if (isTimerFinished){
-                    timerViewModel.resetTimer()
-                    timerViewModel.startTimer(bombViewModel.bombTimerText.toInt())
+                    //timerViewModel.resetTimer()
+                    timerViewModel.startTimer(bombViewModel.bombTimerText.toInt()) //passing bomb timer to timer
                     bombViewModel.isArmingActive = false
                 }
             }
             if (isBombArmed && !isArmingActive) {
-                Detonation(timeLeft.toString())
+
+                Detonation(timeLeft.toString()) //shows Detonation with timer on end of arming
+
                 if (isTimerFinished){
                     bombViewModel.isBombDetonated = true
                 }
             }
-            if (isPenaltyActive) {
-                Penalty(bombViewModel.guessPenaltyText, timeLeft) // Corrected call
+//            if (isPenaltyActive) {
+//                Penalty(bombViewModel.guessPenaltyText, timeLeft)
+//            }
+
+            if (!isArmingActive && isBombArmed){ //For layout after arming, I know we have double !isArmingActive
+                Penalty(bombViewModel.guessPenaltyText, timeLeft) // shows Penalty on end of arming
+                DiffuseCode(diffuseCodeText, isCodeCorrect, bombViewModel.validCode, isCodeCorrectText) //shows DiffuseCode on end of arming
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 40.dp),
+                    verticalArrangement = Arrangement.Bottom
+                ) {
+                    RandomKeyboard(onItemClicked = { item -> //Shows keyboard on start of arming
+                        when {
+                            item == "Go" -> {
+                                isCodeCorrect = diffuseCodeText.length == bombViewModel.validCode.length && bombViewModel.validCode.contains(
+                                    diffuseCodeText
+                                )
+                                if (isCodeCorrect) {
+                                    isCodeCorrectText = "Correct!"
+                                    codeColor = Color.Green
+                                    bombViewModel.isBombDefused = true
+                                    timerViewModel.stopTimer()
+                                } else {
+                                    isCodeCorrectText = "Incorrect!"
+                                    codeColor = Color.Red
+
+                                    bombViewModel.isPenaltyActive = true
+                                    timerViewModel.startPenaltyTimer(bombViewModel.guessPenaltyText.toInt()) //calls penalty timer
+                                }
+                                diffuseCodeText = ""
+                            }
+
+                            item == "R" -> {
+                                diffuseCodeText = ""
+                            }
+
+                            diffuseCodeText.length == bombViewModel.validCode.length + 1 -> {
+                                diffuseCodeText = ""
+                            }
+
+                            else -> {
+                                diffuseCodeText += item
+                            }
+                        }
+                        Log.d("Button", "Button clicked: $item")
+                    })
+                }
             }
             if (isBombDetonated) {
-                Text(text = "Bomb Detonated!", color = Color.Red, fontSize = 30.sp)
+                Text(text = "Bomb Detonated!", color = Color.Red, fontSize = 30.sp) //shows detonated text, end of timer
+
             }
             if (isBombDefused) {
-                Text(text = "Bomb Defused!", color = Color.Green, fontSize = 30.sp)
+                Text(text = "Bomb Defused!", color = Color.Green, fontSize = 30.sp) //shows defused text, end of timer
             }
-            DiffuseCode(diffuseCodeText, isCodeCorrect, bombViewModel.validCode, isCodeCorrectText)
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 40.dp),
-                verticalArrangement = Arrangement.Bottom
-            ) {
-                RandomKeyboard(onItemClicked = { item ->
-                    when {
-                        item == "Go" -> {
-                            isCodeCorrect = diffuseCodeText.length == bombViewModel.validCode.length && bombViewModel.validCode.contains(
-                                diffuseCodeText
-                            )
-                            if (isCodeCorrect) {
-                                isCodeCorrectText = "Correct!"
-                                codeColor = Color.Green
-                                bombViewModel.isBombDefused = true
-                                timerViewModel.stopTimer()
-                            } else {
-                                isCodeCorrectText = "Incorrect!"
-                                codeColor = Color.Red
-                                timerViewModel.startPenaltyTimer(bombViewModel.guessPenaltyText.toInt())
-                                bombViewModel.isPenaltyActive = true
-                            }
-                            diffuseCodeText = ""
-                        }
 
-                        item == "R" -> {
-                            diffuseCodeText = ""
-                        }
-
-                        diffuseCodeText.length == bombViewModel.validCode.length + 1 -> {
-                            diffuseCodeText = ""
-                        }
-
-                        else -> {
-                            diffuseCodeText += item
-                        }
-                    }
-                    Log.d("Button", "Button clicked: $item")
-                })
-            }
         }
     }
 }
@@ -300,7 +309,7 @@ fun BombSettings(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(bottom = 10.dp),
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.Bottom
+                verticalArrangement = Arrangement.Bottom
             ) {
                 Button(onClick = {
                     onStartBombClick(armingText, bombTimerText, guessPenaltyText) //Sets the values of the variables
@@ -324,7 +333,7 @@ fun ArmingTimer(armingText:String){ //After setting, card displays arming time
         border = BorderStroke(3.dp, Color.Black),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 10.dp, end = 10.dp, bottom = 4.dp),
+            .padding(top = 42.dp, start = 10.dp, end = 10.dp, bottom = 4.dp),
     ){
         Column(modifier = Modifier
             .padding(8.dp)
@@ -368,6 +377,7 @@ fun Detonation(bombTimerText:String){ //After setting, card displays timer
 
 @Composable
 fun Penalty(guessPenaltyText: String, timeLeft: Int) {
+    //timeLeft =- guessPenaltyText.toInt() todo fix penalty
     OutlinedCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -383,7 +393,7 @@ fun Penalty(guessPenaltyText: String, timeLeft: Int) {
                 .fillMaxWidth()
         ) {
             Text(
-                text = "Penalty $timeLeft",
+                text = "Penalty", //$timeLeft
                 fontSize = 28.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
@@ -490,6 +500,7 @@ fun shuffleKeyboard(keyboard: List<List<String>>): List<List<String>> {
     val shuffledItems = allItems.shuffled()
     return shuffledItems.chunked(3)
 }
+
 
 
 /*
