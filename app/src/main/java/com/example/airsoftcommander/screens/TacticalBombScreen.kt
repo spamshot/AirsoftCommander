@@ -124,6 +124,7 @@ fun TacticalBombScreen(
                 }
             )
         } else {
+
             if (isArmingActive) {
                 ArmingTimer(timeLeft.toString())
                 if (isTimerFinished){
@@ -133,18 +134,22 @@ fun TacticalBombScreen(
                 }
             }
             if (isBombArmed && !isArmingActive) {
+                if (!isTimerRunning) { //Works but gets called 2x here
+                    Log.d("Timer", "Timer not running")
+                }
 
                 Detonation(timeLeft.toString()) //shows Detonation with timer on end of arming
 
                 if (isTimerFinished){
                     bombViewModel.isBombDetonated = true
-                }
-            }
-//            if (isPenaltyActive) {
-//                Penalty(bombViewModel.guessPenaltyText, timeLeft)
-//            }
+                    if (isBombDetonated) {
+                        Text(text = "Bomb Detonated!", color = Color.Red, fontSize = 30.sp) //shows detonated text, end of timer
 
-            if (!isArmingActive && isBombArmed){ //For layout after arming, I know we have double !isArmingActive
+                    }
+                    if (isBombDefused) {
+                        Text(text = "Bomb Defused!", color = Color.Green, fontSize = 30.sp) //shows defused text, end of timer
+                    }
+                }
                 Penalty(bombViewModel.guessPenaltyText, timeLeft) // shows Penalty on end of arming
                 DiffuseCode(diffuseCodeText, isCodeCorrect, bombViewModel.validCode, isCodeCorrectText) //shows DiffuseCode on end of arming
                 Column(
@@ -157,8 +162,7 @@ fun TacticalBombScreen(
                         when {
                             item == "Go" -> {
                                 isCodeCorrect = diffuseCodeText.length == bombViewModel.validCode.length && bombViewModel.validCode.contains(
-                                    diffuseCodeText
-                                )
+                                    diffuseCodeText)
                                 if (isCodeCorrect) {
                                     isCodeCorrectText = "Correct!"
                                     codeColor = Color.Green
@@ -167,15 +171,16 @@ fun TacticalBombScreen(
                                 } else {
                                     isCodeCorrectText = "Incorrect!"
                                     codeColor = Color.Red
-
                                     bombViewModel.isPenaltyActive = true
                                     timerViewModel.startPenaltyTimer(bombViewModel.guessPenaltyText.toInt()) //calls penalty timer
                                 }
                                 diffuseCodeText = ""
                             }
 
-                            item == "R" -> {
+                            item == "R" -> { //Resets diffuse code
                                 diffuseCodeText = ""
+                                bombViewModel.isPenaltyActive = true
+                                timerViewModel.startPenaltyTimer(bombViewModel.guessPenaltyText.toInt()) //calls penalty timer
                             }
 
                             diffuseCodeText.length == bombViewModel.validCode.length + 1 -> {
@@ -190,15 +195,6 @@ fun TacticalBombScreen(
                     })
                 }
             }
-            if (isBombDetonated) {
-                Text(text = "Bomb Detonated!", color = Color.Red, fontSize = 30.sp) //shows detonated text, end of timer
-
-            }
-            if (isBombDefused) {
-                Text(text = "Bomb Defused!", color = Color.Green, fontSize = 30.sp) //shows defused text, end of timer
-            }
-
-
         }
     }
 }
@@ -474,7 +470,7 @@ fun RandomKeyboard(onItemClicked: (String) -> Unit ) {
                         Button(
                             onClick = {
                                 onItemClicked(item)
-                                Log.d("Button", "Button clicked: $item")
+//                                Log.d("Button", "Button clicked: $item")
                                 shuffledKeyboard = shuffleKeyboard(keyboardArray) // Shuffle on click
                             },
                             Modifier
