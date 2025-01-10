@@ -148,29 +148,41 @@ fun TacticalBombScreen(
 
                             if (armingTime.isNotEmpty() && bombTimer.isNotEmpty() && guessPenalty.isNotEmpty() && bombViewModel.diffuseCodeLength.isNotEmpty()
                             ) {
-                                if (armingTime.toInt() > 30) {
-                                    Log.d("Validation", "Error Arming Time more than 30")
+                                if (bombTimer.toInt() > 60 || bombTimer.toInt() <= 0) { //Detonation timer, we want the error
+                                    Log.d("Validation", "Error Bomb Timer input, 1 to 60 ")
                                     scope.launch {
                                         snackbarHostState.showSnackbar(
-                                            message = "Error Arming Time more than 30",
+                                            message = "Error Bomb Timer 1 to 60",
                                             duration = SnackbarDuration.Short
                                         )
                                     }
+
                                 }else{
-                                    if (bombViewModel.diffuseCodeLength.toInt() != 0 && bombViewModel.diffuseCodeLength.toInt() <= 15) {
-                                        bombViewModel.startBomb()
-                                        // timerViewModel.resetTimer()
-                                        timerViewModel.startArmingTimer(bombViewModel.armingText.toInt()) //Passing arming time to timer
-                                    }else{
-                                        Log.d("Validation", "Error Diffuse Code 1 to 15")
+                                    if (armingTime.toInt() > 30) {
+                                        Log.d("Validation", "Error Arming Time more than 30")
                                         scope.launch {
                                             snackbarHostState.showSnackbar(
-                                                message = "Error Diffuse Code 1 to 15",
+                                                message = "Error Arming Time more than 30",
                                                 duration = SnackbarDuration.Short
                                             )
                                         }
+                                    }else{
+                                        if (bombViewModel.diffuseCodeLength.toInt() != 0 && bombViewModel.diffuseCodeLength.toInt() <= 15) {
+                                            bombViewModel.startBomb()
+                                            // timerViewModel.resetTimer()
+                                            timerViewModel.startArmingTimer(bombViewModel.armingText.toInt()) //Passing arming time to timer
+                                        }else{
+                                            Log.d("Validation", "Error Diffuse Code 1 to 15")
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = "Error Diffuse Code 1 to 15",
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }
+                                        }
                                     }
                                 }
+
                             } else {
                                 Log.d("Validation", "All fields must be filled")
                                 scope.launch {
@@ -329,6 +341,7 @@ fun BombSettings(
                     value = armingText,
                     onValueChange = { if (it.length <= 3) onArmingTimeChange(it) },
                     label = { Text(text = "Time seconds") },
+                    placeholder = { Text(text = "0 to 30") },
                     modifier = Modifier.weight(1f),
                     singleLine = true
                 )
@@ -345,6 +358,7 @@ fun BombSettings(
                     value = bombTimerText,
                     onValueChange = { if (it.length <= 2) onBombTimerChange(it) },
                     label = { Text(text = "Time minutes") },
+                    placeholder = { Text(text = "1 to 60") },
                     modifier = Modifier.weight(1f),
                     singleLine = true
                 )
@@ -361,6 +375,7 @@ fun BombSettings(
                     value = guessPenaltyText,
                     onValueChange = { if (it.length <= 2) onGuessPenaltyChange(it) },
                     label = { Text(text = "Penalty seconds") },
+                    placeholder = { Text(text = "0 to 99") },
                     modifier = Modifier.weight(1f),
                     singleLine = true
                 )
@@ -375,11 +390,11 @@ fun BombSettings(
                 )
                 OutlinedTextField(
                     value = diffuseCodeLength.toString(),
-                    onValueChange = { newValue ->
-                        if (newValue.length <= 2) {
+                    onValueChange = { newValue -> if (newValue.length <= 2) {
                             onDiffuseCodeLengthChange(newValue)
                         }
                     },
+                    placeholder = { Text(text = "1 to 15") },
                     label = { Text(text = "Code Length") },
                     modifier = Modifier.weight(1f),
                     singleLine = true
