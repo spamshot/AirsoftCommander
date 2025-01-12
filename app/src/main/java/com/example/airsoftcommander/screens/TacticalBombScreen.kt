@@ -119,6 +119,8 @@ fun TacticalBombScreen(
     val isPenaltyActive = bombViewModel.isPenaltyActive
     val isArmingActive = bombViewModel.isArmingActive
 
+    var isGameOver by remember { mutableStateOf(false)}
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
@@ -210,23 +212,22 @@ fun TacticalBombScreen(
                         }
 
                         Detonation(timeLeft.toString()) //shows Detonation with timer on end of arming
+                        if (isBombDefused) {
+                            LaunchedEffect(isBombDefused) {
+                                navController.navigate("end_screen/true"){
+                                    popUpTo("bomb_screen") { inclusive = true }
+                                }
+                            }
+                        }
 
                         if (isTimerFinished) {
                             bombViewModel.isBombDetonated = true
                             if (isBombDetonated) {
-                                Text(
-                                    text = "Bomb Detonated!",
-                                    color = Color.Red,
-                                    fontSize = 30.sp
-                                ) //shows detonated text, end of timer
-
-                            }
-                            if (isBombDefused) {
-                                Text(
-                                    text = "Bomb Defused!",
-                                    color = Color.Green,
-                                    fontSize = 30.sp
-                                ) //shows defused text, end of timer
+                                LaunchedEffect(isBombDetonated) {
+                                    navController.navigate("end_screen/false"){
+                                        popUpTo("bomb_screen") { inclusive = true }
+                                    }
+                                }
                             }
                         }
                         Penalty(
@@ -258,7 +259,7 @@ fun TacticalBombScreen(
                                             isCodeCorrectText = "Correct!"
                                             codeColor = Color.Green
                                             bombViewModel.isBombDefused = true
-                                            timerViewModel.stopTimer()
+                                            timerViewModel.stopTimer() //todo Looking here
                                         } else {
                                             isCodeCorrectText = "Incorrect!"
                                             codeColor = Color.Red
@@ -293,6 +294,9 @@ fun TacticalBombScreen(
             }
         }
     }
+//    if (isGameOver) {
+//        navController.navigate("end_screen")
+//    }
 }
 
 
@@ -315,7 +319,7 @@ fun BombSettings(
         border = BorderStroke(2.dp, Color.LightGray),
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 42.dp, start = 10.dp, end = 10.dp, bottom = 16.dp),
+            .padding(top = 12.dp, start = 10.dp, end = 10.dp, bottom = 16.dp),
     ) {
         Column(
             modifier = Modifier
@@ -429,7 +433,7 @@ fun ArmingTimer(armingText:String){ //After setting, card displays arming time
         border = BorderStroke(3.dp, Color.Black),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 42.dp, start = 10.dp, end = 10.dp, bottom = 4.dp),
+            .padding(top = 22.dp, start = 10.dp, end = 10.dp, bottom = 4.dp),
     ){
         Column(modifier = Modifier
             .padding(8.dp)
@@ -454,7 +458,7 @@ fun Detonation(bombTimerText:String){ //After setting, card displays timer
         border = BorderStroke(3.dp, Color.Red),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 42.dp, start = 10.dp, end = 10.dp, bottom = 4.dp),
+            .padding(top = 22.dp, start = 10.dp, end = 10.dp, bottom = 4.dp),
     ){
         Column(modifier = Modifier
             .padding(8.dp)
