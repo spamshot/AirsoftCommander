@@ -26,3 +26,7 @@ class MainActivity : ComponentActivity() {
 
 }
 
+
+//Sound files from https://www.pond5.com/
+//Sound files protected by a copyright
+//ref link https://www.pond5.com?ref=kylanhill800
