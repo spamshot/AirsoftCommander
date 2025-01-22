@@ -40,7 +40,7 @@ fun GamesList(gamesList: List<Games>, navController: NavController) {
 @Composable
 fun GamesCard(games: Games, navController: NavController, route: String) {
     Card (modifier = Modifier.fillMaxWidth()
-        .padding(8.dp)
+        .padding(12.dp)
         .clickable {
             navController.navigate(route)
 
@@ -52,7 +52,7 @@ fun GamesCard(games: Games, navController: NavController, route: String) {
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
+                    .height(200.dp)
             )
             Text(
                 text = stringResource(games.title),

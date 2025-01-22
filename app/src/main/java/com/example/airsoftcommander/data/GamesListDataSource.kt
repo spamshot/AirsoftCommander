@@ -11,5 +11,5 @@ class GamesListDataSource {
         )
     }
 }
-//todo images from Copilot
+//todo images from Copilot, Any games get added to this list
 
