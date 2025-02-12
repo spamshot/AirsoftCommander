@@ -145,6 +145,16 @@ fun TacticalBombScreen(
         }
     }
 
+    LaunchedEffect(isBombArmed && !isArmingActive) {
+        Log.d("Arming", "isArmingActive changed to: $isArmingActive")
+        if (isBombArmed && !isArmingActive) {
+            Log.d("Sound", "Playing arming sound")
+            soundManager.playBombBeeping()
+        } else {
+            soundManager.stopBombBeeping()
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
@@ -235,7 +245,9 @@ fun TacticalBombScreen(
                         if (!isTimerRunning) { //Works but gets called 2x here
                             Log.d("Timer", "Timer not running")
                         }
-                        soundManager.playBombBeeping()
+
+
+
 
                         Detonation(timeLeft.toString()) //shows Detonation with timer on end of arming
                         if (isBombDefused) {
@@ -637,7 +649,9 @@ fun RandomKeyboard(onItemClicked: (String) -> Unit) {
                                 onItemClicked(item)
 //                                Log.d("Button", "Button clicked: $item")
                                 shuffledKeyboard = shuffleKeyboard(keyboardArray) // Shuffle on click\
+                                //soundManager.stopBombBeeping() //dose nothing here
                                 soundManager.playKeypad()
+
 
                             },
                             Modifier
@@ -752,6 +766,7 @@ class SoundManager (private val context: Context){
 
     fun playBombBeeping() {
         try {
+
             // Release the previous Bomb Beeping MediaPlayer if it exists
             playBombBeeping?.release()
             playBombBeeping = null
