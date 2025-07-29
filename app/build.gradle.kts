@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.airsoftcommander"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.airsoftcommander"
@@ -57,10 +57,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    val nav_version = "2.8.5"
-    implementation("androidx.navigation:navigation-compose:$nav_version")
-    implementation("androidx.compose.ui:ui:1.7.6")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
-    implementation("androidx.compose.material3:material3-window-size-class:1.3.1")
+
+    implementation("androidx.navigation:navigation-compose:2.9.2")
+    implementation("androidx.compose.ui:ui:1.8.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.2")
+    implementation("androidx.compose.material3:material3-window-size-class:1.3.2")
 }
